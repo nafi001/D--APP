@@ -328,28 +328,3 @@ def run_app():
 
 if __name__ == "__main__":
     run_app()
-```
-
-The key changes are in the `run_app` function, specifically before the `combined_df_for_fe.set_index('date', inplace=True)` line:
-```python
-        # --- MODIFICATION START: Ensure 'date' column is datetime and remove NaT rows ---
-        # Ensure 'date' column is properly typed to datetime, coercing errors.
-        # This handles NaT from historical data and ensures consistent type.
-        combined_df_for_fe['date'] = pd.to_datetime(combined_df_for_fe['date'], errors='coerce')
-        
-        # Remove rows where 'date' became NaT after conversion
-        if combined_df_for_fe['date'].isna().any():
-            num_na_dates = combined_df_for_fe['date'].isna().sum()
-            st.warning(
-                f"Found {num_na_dates} row(s) with invalid or unparseable dates in the combined data. "
-                "These rows will be removed before feature engineering."
-            )
-            combined_df_for_fe.dropna(subset=['date'], inplace=True)
-
-        if combined_df_for_fe.empty:
-            st.error(
-                "The DataFrame is empty after removing rows with invalid dates. "
-                "Cannot proceed with prediction. Please check your historical_data.csv for date format issues."
-            )
-            st.stop()
-        # --- MODIFICATION END ---
